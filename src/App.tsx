@@ -2,21 +2,16 @@ import React, { useEffect } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import MyLinkedList from "./common/list/LinkedList";
+import {mergeTwoLists} from "./common/leetcode/mergeTwoLists";
+import { list1, list2 } from './data';
 
 function App() {
     useEffect(() => {
-        test();
+        console.log(mergeTwoLists(list1, list2))
     }, []);
-    function test () {
-        const testLinkList = new MyLinkedList();
-        testLinkList.addAtHead(1);
-        testLinkList.addAtTail(3);
-        testLinkList.addAtIndex(1, 2);
-        // testLinkList.get(1);
-        // testLinkList.deleteAtIndex(1);
-        // testLinkList.get(1);
-        console.log(testLinkList);
-    }
+    // function test () {
+        // test();
+    // }
     return (
         <div className="App">
             <header className="App-header">
