@@ -6,7 +6,7 @@
  */
 'use strict';
 
-module.exports = function stripUnusedImports(pureExternalModules) {
+module.exports = function stripUnusedImports(pureExternalModules, enableSourcemap) {
   return {
     name: 'scripts/rollup/plugins/strip-unused-imports',
     renderChunk(code) {
@@ -23,7 +23,10 @@ module.exports = function stripUnusedImports(pureExternalModules) {
         );
         code = code.replace(regExp, '$1');
       });
-      return {code};
+      return {
+        code,
+        map: enableSourcemap ? null : undefined, // 返回null表示保留现有的sourcemap
+      };
     },
   };
 };

@@ -90,6 +90,7 @@ const requestedBundleTypes = argv.type
 const requestedBundleNames = parseRequestedNames(argv._, 'lowercase');
 const forcePrettyOutput = argv.pretty;
 const isWatchMode = argv.watch;
+const enableSourcemap = argv.sourcemap || false;
 const syncFBSourcePath = argv['sync-fbsource'];
 const syncWWWPath = argv['sync-www'];
 
@@ -197,7 +198,7 @@ function getRollupOutputOptions(
     freeze: !isProduction,
     interop: false,
     name: globalName,
-    sourcemap: false,
+    sourcemap: enableSourcemap,
     esModule: false,
   };
 }
@@ -350,8 +351,12 @@ function getPlugins(
     ),
     // Remove 'use strict' from individual source files.
     {
-      transform(source) {
-        return source.replace(/['"]use strict["']/g, '');
+      name: 'remove-use-strict',
+      transform(source, id) {
+        return {
+          code: source.replace(/['"]use strict["']/g, ''),
+          map: enableSourcemap ? null : undefined // 返回null表示保留现有的sourcemap
+        };
       },
     },
     // Turn __DEV__ and process.env checks into constants.
@@ -377,11 +382,12 @@ function getPlugins(
           // https://github.com/facebook/react/issues/10909
           assume_function_wrapper: !isUMDBundle,
           renaming: !shouldStayReadable,
-        })
+        }),
+        enableSourcemap,
       ),
     // HACK to work around the fact that Rollup isn't removing unused, pure-module imports.
     // Note that this plugin must be called after closure applies DCE.
-    isProduction && stripUnusedImports(pureExternalModules),
+    isProduction && stripUnusedImports(pureExternalModules, enableSourcemap),
     // Add the whitespace back if necessary.
     shouldStayReadable &&
       prettier({
@@ -392,15 +398,19 @@ function getPlugins(
       }),
     // License and haste headers, top-level `if` blocks.
     {
+      name: 'wrappers',
       renderChunk(source) {
-        return Wrappers.wrapBundle(
-          source,
-          bundleType,
-          globalName,
-          filename,
-          moduleType,
-          bundle.wrapWithModuleBoundaries
-        );
+        return {
+          code: Wrappers.wrapBundle(
+            source,
+            bundleType,
+            globalName,
+            filename,
+            moduleType,
+            bundle.wrapWithModuleBoundaries
+          ),
+          map: enableSourcemap ? null : undefined // 保留现有的sourcemap
+        };
       },
     },
     // Record bundle size.

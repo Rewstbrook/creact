@@ -28,6 +28,10 @@ export function createRoot(
 ): RootType {
   if (__DEV__) {
     Internals.usingClientEntryPoint = true;
+    console.log("=== Client Entry Point createRoot called ===");
+  console.log("Container:", container);
+  console.log("Options:", options);
+  console.log("__DEV__:", __DEV__);
   }
   try {
     return createRootImpl(container, options);

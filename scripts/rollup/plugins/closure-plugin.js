@@ -19,7 +19,7 @@ function compile(flags) {
   });
 }
 
-module.exports = function closure(flags = {}) {
+module.exports = function closure(flags = {}, enableSourcemap) {
   return {
     name: 'scripts/rollup/plugins/closure-plugin',
     async renderChunk(code) {
@@ -29,7 +29,10 @@ module.exports = function closure(flags = {}) {
       await writeFileAsync(tempPath, code, 'utf8');
       const compiledCode = await compile(flags);
       inputFile.removeCallback();
-      return {code: compiledCode};
+      return {
+        code: compiledCode,
+        map: enableSourcemap ? null : undefined // 返回null表示保留现有的sourcemap
+      };
     },
   };
 };
